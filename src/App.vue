@@ -51,6 +51,7 @@
 import { computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/store'
+import twemoji from 'twemoji'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,60 +72,23 @@ onMounted(async () => {
       router.push('/login')
     }
   }
-  // Emoji 兼容：将 Emoji 转为 SVG 图片（微信等老旧浏览器支持）
-  try { await convertEmoji() } catch {}
+  // Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
+  convertEmoji()
 })
 
 // 监听路由变化也转换
-watch(() => route.path, async () => {
-  await nextTick()
-  try { await convertEmoji() } catch {}
+watch(() => route.path, () => {
+  nextTick(() => convertEmoji())
 })
 
-// 记录成功加载的 CDN 的图片 base 地址，后续路由切换复用
-let _emojiBase = 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
-
 // Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
-// 将 CDN script 地址与图片资源 base 地址配对，确保 JS 和图片走同一 CDN
-async function convertEmoji() {
-  if (!window.twemoji) {
-    const cdns = [
-      {
-        script: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js',
-        base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
-      },
-      {
-        script: 'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/twemoji.min.js',
-        base: 'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/assets/'
-      },
-      {
-        script: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js',
-        base: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/assets/'
-      }
-    ]
-    for (const src of cdns) {
-      try {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script')
-          s.src = src.script
-          s.onload = resolve
-          s.onerror = reject
-          document.head.appendChild(s)
-        })
-        if (window.twemoji) {
-          _emojiBase = src.base
-          break
-        }
-      } catch {}
-    }
-  }
-  if (window.twemoji) {
-    window.twemoji.parse(document.body, {
-      folder: '72x72',
-      ext: '.png',
-      base: _emojiBase
-    })
-  }
+// 使用本地安装的 twemoji 库 + 本地图片资源，不依赖外部 CDN
+function convertEmoji() {
+  twemoji.parse(document.body, {
+    folder: '72x72',
+    ext: '.png',
+    base: '/twemoji/'
+  })
 }
 
 const tabs = [
