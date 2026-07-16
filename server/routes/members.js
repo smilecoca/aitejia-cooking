@@ -1,5 +1,6 @@
 const express = require('express')
-const { read, write } = require('../db')
+const { v4: uuidv4 } = require('uuid')
+const { read, write, hashPassword } = require('../db')
 const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
@@ -9,21 +10,30 @@ router.get('/', authMiddleware, (req, res) => {
   const users = read('users')
   const members = users
     .filter(u => u.familyId === req.user.familyId)
-    .map(({ password, ...m }) => m) // 不返回密码
+    .map(({ password, ...m }) => m)
   res.json(members)
 })
 
 // 更新成员信息
 router.put('/:id', authMiddleware, (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: '仅管理员可操作' })
+  const isAdmin = req.user.role === 'admin'
+  const isSelf = req.user.id === req.params.id
+
+  if (!isAdmin && !isSelf) {
+    return res.status(403).json({ error: '无权修改他人信息' })
+  }
+
   const users = read('users')
   const idx = users.findIndex(u => u.id === req.params.id)
   if (idx === -1) return res.status(404).json({ error: '成员不存在' })
 
   const { name, avatar, role } = req.body
+
+  // 管理员可修改任何字段；自己可改所有信息但不能改角色
+  if (role && isAdmin) users[idx].role = role
   if (name) users[idx].name = name
   if (avatar) users[idx].avatar = avatar
-  if (role) users[idx].role = role
+
   write('users', users)
 
   const { password, ...safe } = users[idx]
@@ -37,18 +47,16 @@ router.post('/', authMiddleware, (req, res) => {
   if (!name) return res.status(400).json({ error: '请输入成员名称' })
 
   const users = read('users')
-  // 检查重名
   if (users.find(u => u.name === name && u.familyId === req.user.familyId)) {
     return res.status(400).json({ error: '该名称已存在' })
   }
 
-  const { v4: uuidv4 } = require('uuid')
   const newUser = {
     id: 'u' + uuidv4().slice(0, 8),
     name,
     avatar: avatar || '👤',
     role: 'member',
-    password: password || '123456',
+    password: hashPassword(password || '123456'),
     familyId: req.user.familyId
   }
   users.push(newUser)

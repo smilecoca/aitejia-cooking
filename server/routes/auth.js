@@ -1,6 +1,6 @@
 const express = require('express')
 const jwt = require('jsonwebtoken')
-const { read, write } = require('../db')
+const { read, write, hashPassword, comparePassword } = require('../db')
 const { authMiddleware, JWT_SECRET } = require('../middleware/auth')
 
 const router = express.Router()
@@ -9,13 +9,12 @@ const router = express.Router()
 router.post('/login', (req, res) => {
   const { name, password } = req.body || {}
   if (!name || !password) {
-    return res.status(400).json({ error: '请输入用户名和密码', debug: req.body })
+    return res.status(400).json({ error: '请输入用户名和密码' })
   }
 
   const users = read('users')
-  console.log('Login attempt:', JSON.stringify({ name, password }), 'Users:', JSON.stringify(users.map(u => ({ name: u.name, pw: u.password }))))
-  const user = users.find(u => String(u.name) === String(name) && u.password === password)
-  if (!user) {
+  const user = users.find(u => String(u.name) === String(name))
+  if (!user || !comparePassword(password, user.password)) {
     return res.status(401).json({ error: '用户名或密码错误' })
   }
 
@@ -31,17 +30,14 @@ router.post('/login', (req, res) => {
   res.json({
     token,
     user: {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      role: user.role,
-      familyId: user.familyId
+      id: user.id, name: user.name, avatar: user.avatar,
+      role: user.role, familyId: user.familyId
     },
     family: family ? { id: family.id, name: family.name, inviteCode: family.inviteCode } : null
   })
 })
 
-// 获取当前用户信息（根据 token）
+// 获取当前用户信息
 router.get('/me', authMiddleware, (req, res) => {
   const users = read('users')
   const user = users.find(u => u.id === req.user.id)
@@ -52,11 +48,8 @@ router.get('/me', authMiddleware, (req, res) => {
 
   res.json({
     user: {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      role: user.role,
-      familyId: user.familyId
+      id: user.id, name: user.name, avatar: user.avatar,
+      role: user.role, familyId: user.familyId
     },
     family: family ? { id: family.id, name: family.name, inviteCode: family.inviteCode } : null
   })
@@ -76,11 +69,11 @@ router.put('/password', authMiddleware, (req, res) => {
   const idx = users.findIndex(u => u.id === req.user.id)
   if (idx === -1) return res.status(404).json({ error: '用户不存在' })
 
-  if (users[idx].password !== oldPassword) {
+  if (!comparePassword(oldPassword, users[idx].password)) {
     return res.status(400).json({ error: '旧密码不正确' })
   }
 
-  users[idx].password = newPassword
+  users[idx].password = hashPassword(newPassword)
   write('users', users)
   res.json({ success: true, message: '密码已修改' })
 })

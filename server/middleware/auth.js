@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const JWT_SECRET = 'aitejia-cooking-secret-2026'
+const JWT_SECRET = process.env.JWT_SECRET || 'aitejia-cooking-secret-2026'
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization

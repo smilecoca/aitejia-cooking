@@ -103,8 +103,15 @@ const selectedNames = computed(() =>
   store.mySelections.map(id => store.dishList.find(d => d.id === id)?.name || '').filter(Boolean).join(' · ')
 )
 
-function submit() {
-  if (store.submitOrder()) showToast(`已提交 ${store.mySelections.length} 道菜 🎉`)
+async function submit() {
+  const count = store.mySelections.length
+  if (!count) return
+  try {
+    const ok = await store.submitOrder()
+    if (ok) showToast(`已提交 ${count} 道菜 🎉`)
+  } catch (e) {
+    showToast(e.message || '提交失败')
+  }
 }
 
 function openAdd() {

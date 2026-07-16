@@ -22,7 +22,12 @@ async function request(path, options = {}) {
     // token 过期，跳转登录
     localStorage.removeItem('aitejia_token')
     localStorage.removeItem('aitejia_user')
-    window.location.hash = '#/login'
+    // 使用 Vue Router 跳转
+    import('@/router').then(mod => {
+      mod.default.push('/login')
+    }).catch(() => {
+      window.location.hash = '#/login'
+    })
     throw new Error('登录已过期')
   }
 

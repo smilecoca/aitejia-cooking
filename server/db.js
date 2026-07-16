@@ -1,28 +1,24 @@
 // 简易 JSON 文件数据库
 const fs = require('fs')
 const path = require('path')
+const bcrypt = require('bcryptjs')
 
 const DATA_DIR = path.join(__dirname, 'data')
 
-// 初始数据
+// 使用 bcrypt 哈希密码
+const hashPassword = (pw) => bcrypt.hashSync(pw, 10)
+
+// 初始数据（密码已哈希）
 const DEFAULTS = {
   users: [
-    {
-      id: 'u1', name: '妈妈', avatar: '👩', role: 'admin',
-      password: '123456', familyId: 'f1'
-    },
-    {
-      id: 'u2', name: '爸爸', avatar: '👨', role: 'member',
-      password: '123456', familyId: 'f1'
-    },
-    {
-      id: 'u3', name: '女儿', avatar: '👧', role: 'member',
-      password: '123456', familyId: 'f1'
-    },
-    {
-      id: 'u4', name: '儿子', avatar: '🧒', role: 'member',
-      password: '123456', familyId: 'f1'
-    }
+    { id: 'u1', name: '妈妈', avatar: '👩', role: 'admin',
+      password: hashPassword('123456'), familyId: 'f1' },
+    { id: 'u2', name: '爸爸', avatar: '👨', role: 'member',
+      password: hashPassword('123456'), familyId: 'f1' },
+    { id: 'u3', name: '女儿', avatar: '👧', role: 'member',
+      password: hashPassword('123456'), familyId: 'f1' },
+    { id: 'u4', name: '儿子', avatar: '🧒', role: 'member',
+      password: hashPassword('123456'), familyId: 'f1' }
   ],
   dishes: [
     { id: 'd1', name: '红烧排骨', category: 'meat', emoji: '🍖' },
@@ -74,4 +70,4 @@ function write(name, data) {
   fs.writeFileSync(getFilePath(name), JSON.stringify(data, null, 2), 'utf-8')
 }
 
-module.exports = { read, write }
+module.exports = { read, write, hashPassword, comparePassword: bcrypt.compareSync }

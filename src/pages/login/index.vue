@@ -63,7 +63,7 @@ async function handleLogin() {
     store.currentUser.role = data.user.role
     store.currentUser.familyId = data.user.familyId
     // 加载初始数据
-    store.loadInitialData()
+    await store.loadInitialData()
     router.push('/home')
   } catch (e) {
     error.value = e.message || '登录失败'
@@ -175,21 +175,4 @@ async function handleLogin() {
   margin-top: 20px;
   text-align: center;
 }
-.test-users {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-.test-user {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1.5px solid #E0D6CC;
-  background: #fff;
-  font-size: 13px;
-  color: var(--brown);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.test-user:active { background: var(--orange-bg); border-color: var(--orange); }
 </style>

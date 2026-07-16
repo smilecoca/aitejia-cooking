@@ -43,6 +43,7 @@ router.post('/start', authMiddleware, (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: '仅管理员可发起' })
   const { mealType, mealLabel } = req.body
   if (!mealType || !mealLabel) return res.status(400).json({ error: '请选择餐次' })
+  if (!['breakfast', 'lunch', 'dinner'].includes(mealType)) return res.status(400).json({ error: '无效的餐次类型' })
 
   let orders = read('orders')
 

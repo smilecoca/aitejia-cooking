@@ -7,7 +7,8 @@ const routes = [
   { path: '/dishes', name: 'Dishes', component: () => import('@/pages/dishes/index.vue'), meta: { title: '菜品库', icon: '📋' } },
   { path: '/history', name: 'History', component: () => import('@/pages/history/index.vue'), meta: { title: '历史', icon: '📅' } },
   { path: '/members', name: 'Members', component: () => import('@/pages/members/index.vue'), meta: { title: '成员', icon: '👨‍👩‍👧‍👦' } },
-  { path: '/profile', name: 'Profile', component: () => import('@/pages/profile/index.vue'), meta: { title: '我的', icon: '👤' } }
+  { path: '/profile', name: 'Profile', component: () => import('@/pages/profile/index.vue'), meta: { title: '我的', icon: '👤' } },
+  { path: '/:pathMatch(.*)*', redirect: '/home' }
 ]
 
 const router = createRouter({
