@@ -81,15 +81,18 @@ watch(() => route.path, () => {
   nextTick(() => convertEmoji())
 })
 
-// 监听菜品列表变化（异步加载 / 搜索 / 分类切换后 Vue 重新渲染导致 emoji 丢失）
-watch(() => store.filteredDishes, () => {
-  nextTick(() => convertEmoji())
-}, { deep: true })
-
-// 监听订单数据变化
-watch(() => store.orderItems, () => {
-  nextTick(() => convertEmoji())
-}, { deep: true })
+// 监听 store 数据变化时重新转换 emoji（DOM 更新后执行）
+// 覆盖：菜品加载、分类切换、搜索、点餐等所有 Vue 重新渲染引起 emoji 丢失的场景
+let _emojiPending = false
+store.$subscribe(() => {
+  if (!_emojiPending) {
+    _emojiPending = true
+    nextTick(() => {
+      _emojiPending = false
+      convertEmoji()
+    })
+  }
+})
 
 // Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
 // 使用本地安装的 twemoji 库 + 本地图片资源，不依赖外部 CDN
