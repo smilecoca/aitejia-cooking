@@ -128,9 +128,7 @@ function openPassword() { oldPassword.value = ''; newPassword.value = ''; confir
 async function saveName() {
   if (!newName.value.trim()) { showToast('昵称不能为空'); return }
   try {
-    const trimmed = newName.value.trim()
-    await store.updateMember(store.currentUser.id, { name: trimmed })
-    store.currentUser.name = trimmed
+    await store.updateMember(store.currentUser.id, { name: newName.value.trim() })
     showToast('昵称已更新 ✅')
     showName.value = false
   } catch (e) { showToast(e.message || '修改失败') }
@@ -140,7 +138,6 @@ async function saveAvatar() {
   if (!selAvatar.value) return
   try {
     await store.updateMember(store.currentUser.id, { avatar: selAvatar.value })
-    store.currentUser.avatar = selAvatar.value
     showToast('头像已更新 ✅')
     showAvatar.value = false
   } catch (e) { showToast(e.message || '修改失败') }

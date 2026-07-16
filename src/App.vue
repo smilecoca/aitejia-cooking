@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, nextTick } from 'vue'
+import { computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/store'
 
@@ -72,14 +72,13 @@ onMounted(async () => {
     }
   }
   // Emoji 兼容：将 Emoji 转为 SVG 图片（微信等老旧浏览器支持）
-  await convertEmoji()
+  try { await convertEmoji() } catch {}
 })
 
 // 监听路由变化也转换
-import { watch } from 'vue'
 watch(() => route.path, async () => {
   await nextTick()
-  await convertEmoji()
+  try { await convertEmoji() } catch {}
 })
 
 async function convertEmoji() {
@@ -129,6 +128,8 @@ function navigate(path) {
   --green: #66BB6A;
   --green-bg: #E8F5E9;
   --red: #EF5350;
+  --red-bg: #FFEBEE;
+  --yellow: #FFA726;
   --card-shadow: 0 2px 12px rgba(93, 64, 55, 0.08);
   --radius: 16px;
   --radius-sm: 10px;

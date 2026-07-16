@@ -95,14 +95,13 @@ function openEdit(m) {
 
 async function saveEdit() {
   if (!editForm.value.name.trim()) { showToast('昵称不能为空'); return }
-  await store.updateMember(editTarget.value, { ...editForm.value })
-  if (editTarget.value === store.currentUser.id) {
-    store.currentUser.name = editForm.value.name
-    store.currentUser.avatar = editForm.value.avatar
-    store.currentUser.role = editForm.value.role
+  try {
+    await store.updateMember(editTarget.value, { ...editForm.value })
+    showToast('已更新 ✅')
+    showEdit.value = false
+  } catch (e) {
+    showToast(e.message || '修改失败')
   }
-  showToast('已更新 ✅')
-  showEdit.value = false
 }
 
 async function saveAdd() {
