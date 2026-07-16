@@ -1,0 +1,12 @@
+{
+  "name": "爱特家的小厨房",
+  "appid": "",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "description": "家庭点餐系统 - 每餐想吃什么，家人们自己选",
+  "uni-app": {
+    "h5": {
+      "title": "爱特家的小厨房"
+    }
+  }
+}

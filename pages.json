@@ -1,0 +1,15 @@
+{
+  "pages": [
+    {"path": "pages/home/index", "style": {"navigationBarTitleText": "首页"}},
+    {"path": "pages/dishes/index", "style": {"navigationBarTitleText": "菜品库"}},
+    {"path": "pages/history/index", "style": {"navigationBarTitleText": "历史记录"}},
+    {"path": "pages/members/index", "style": {"navigationBarTitleText": "家庭成员"}},
+    {"path": "pages/profile/index", "style": {"navigationBarTitleText": "我的"}}
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#FF7B42",
+    "navigationBarTitleText": "爱特家的小厨房",
+    "backgroundColor": "#FFF8F2"
+  }
+}
