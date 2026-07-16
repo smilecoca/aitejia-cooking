@@ -24,12 +24,9 @@
 
       <!-- 用户列表（方便测试） -->
       <div class="user-hint">
-        <p style="margin-bottom:6px;font-size:12px;color:var(--brown-light);">👆 点击账号快速填入</p>
-        <div class="test-users">
-          <button v-for="u in testUsers" :key="u.name" class="test-user" @click="fillUser(u)">
-            {{ u.avatar }} {{ u.name }}
-          </button>
-        </div>
+        <p style="font-size:12px;color:var(--brown-lighter);">
+          首次登录试用账号：妈妈 / 123456 （管理员）
+        </p>
       </div>
     </div>
   </div>
@@ -48,18 +45,6 @@ const name = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
-
-const testUsers = [
-  { name: '妈妈', avatar: '👩' },
-  { name: '爸爸', avatar: '👨' },
-  { name: '女儿', avatar: '👧' },
-  { name: '儿子', avatar: '🧒' }
-]
-
-function fillUser(u) {
-  name.value = u.name
-  password.value = '123456'
-}
 
 async function handleLogin() {
   if (!name.value || !password.value) {

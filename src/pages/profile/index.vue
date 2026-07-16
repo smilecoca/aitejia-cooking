@@ -29,6 +29,10 @@
       </div>
     </div>
 
+    <div class="logout-section">
+      <button class="logout-btn" @click="handleLogout">退出登录</button>
+    </div>
+
     <!-- 修改昵称 -->
     <div v-if="showName" class="overlay" @click.self="showName = false">
       <div class="sheet">
@@ -99,9 +103,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAppStore } from '@/store'
 import { showToast } from '@/utils/toast'
 
+const router = useRouter()
 const store = useAppStore()
 const showName = ref(false)
 const showAvatar = ref(false)
@@ -137,6 +143,12 @@ async function saveAvatar() {
     showToast('头像已更新 ✅')
     showAvatar.value = false
   } catch (e) { showToast(e.message || '修改失败') }
+}
+
+function handleLogout() {
+  localStorage.removeItem('aitejia_token')
+  localStorage.removeItem('aitejia_user')
+  router.push('/login')
 }
 
 async function savePassword() {
@@ -227,6 +239,16 @@ async function savePassword() {
   font-size: 24px; border: 2px solid transparent; background: #f5f0eb;
 }
 .av-item.sel { border-color: var(--orange); background: var(--orange-bg); }
+
+.logout-section { margin-top: 24px; }
+.logout-btn {
+  width: 100%; padding: 14px;
+  border: 1.5px solid var(--red); border-radius: var(--radius-sm);
+  background: #fff; color: var(--red);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.logout-btn:active { background: var(--red-bg); }
 
 .about { text-align: center; padding: 10px 0; }
 .about-icon { font-size: 48px; margin-bottom: 10px; }
