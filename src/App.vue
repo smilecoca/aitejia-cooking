@@ -81,25 +81,40 @@ watch(() => route.path, async () => {
   try { await convertEmoji() } catch {}
 })
 
+// 记录成功加载的 CDN 的图片 base 地址，后续路由切换复用
+let _emojiBase = 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
+
 // Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
+// 将 CDN script 地址与图片资源 base 地址配对，确保 JS 和图片走同一 CDN
 async function convertEmoji() {
   if (!window.twemoji) {
-    // 多 CDN 回退，优先国内可用的
     const cdns = [
-      'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js',
-      'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/twemoji.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js'
+      {
+        script: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js',
+        base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
+      },
+      {
+        script: 'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/twemoji.min.js',
+        base: 'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/assets/'
+      },
+      {
+        script: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js',
+        base: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/assets/'
+      }
     ]
-    for (const url of cdns) {
+    for (const src of cdns) {
       try {
         await new Promise((resolve, reject) => {
           const s = document.createElement('script')
-          s.src = url
+          s.src = src.script
           s.onload = resolve
           s.onerror = reject
           document.head.appendChild(s)
         })
-        if (window.twemoji) break
+        if (window.twemoji) {
+          _emojiBase = src.base
+          break
+        }
       } catch {}
     }
   }
@@ -107,7 +122,7 @@ async function convertEmoji() {
     window.twemoji.parse(document.body, {
       folder: '72x72',
       ext: '.png',
-      base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
+      base: _emojiBase
     })
   }
 }
