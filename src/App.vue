@@ -15,7 +15,10 @@
       <div class="nav-header">
         <div class="logo-icon">🍲</div>
         <h1>爱特家的小厨房</h1>
-        <div class="role-badge">{{ store.isAdmin ? '👑 管理员' : '👤 成员' }}</div>
+        <div class="user-badge">
+          <span class="ub-avatar">{{ store.currentUser.avatar }}</span>
+          <span class="ub-name">{{ store.currentUser.name }}</span>
+        </div>
       </div>
     </template>
 
@@ -45,7 +48,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/store'
 
@@ -63,13 +66,41 @@ onMounted(async () => {
     try {
       await store.loadInitialData()
     } catch {
-      // token 过期，清理并跳转登录
       localStorage.removeItem('aitejia_token')
       localStorage.removeItem('aitejia_user')
       router.push('/login')
     }
   }
+  // Emoji 兼容：将 Emoji 转为 SVG 图片（微信等老旧浏览器支持）
+  await convertEmoji()
 })
+
+// 监听路由变化也转换
+import { watch } from 'vue'
+watch(() => route.path, async () => {
+  await nextTick()
+  await convertEmoji()
+})
+
+async function convertEmoji() {
+  // Twemoji CDN 加载
+  if (!window.twemoji) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js'
+      s.onload = resolve
+      s.onerror = reject
+      document.head.appendChild(s)
+    })
+  }
+  if (window.twemoji) {
+    window.twemoji.parse(document.body, {
+      folder: 'svg',
+      ext: '.svg',
+      base: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'
+    })
+  }
+}
 
 const tabs = [
   { path: '/home', name: '首页', icon: '🏠' },
@@ -168,13 +199,17 @@ html, body {
   font-size: 18px;
 }
 .nav-header h1 { font-size: 17px; font-weight: 700; flex: 1; }
-.role-badge {
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(255,255,255,0.2);
-  padding: 4px 10px;
+  padding: 4px 12px 4px 6px;
   border-radius: 20px;
-  font-size: 11px;
   white-space: nowrap;
 }
+.ub-avatar { font-size: 16px; }
+.ub-name { font-size: 12px; font-weight: 500; }
 
 /* ===== 页面内容 ===== */
 .page-content {
@@ -253,5 +288,14 @@ html, body {
   15% { opacity: 1; transform: translateY(0); }
   75% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Twemoji 图片样式（兼容微信等老旧浏览器） */
+img.emoji {
+  height: 1.2em;
+  width: 1.2em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.2em;
+  display: inline-block;
 }
 </style>
