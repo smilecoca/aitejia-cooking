@@ -81,22 +81,33 @@ watch(() => route.path, async () => {
   try { await convertEmoji() } catch {}
 })
 
+// Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
 async function convertEmoji() {
-  // Twemoji CDN 加载
   if (!window.twemoji) {
-    await new Promise((resolve, reject) => {
-      const s = document.createElement('script')
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js'
-      s.onload = resolve
-      s.onerror = reject
-      document.head.appendChild(s)
-    })
+    // 多 CDN 回退，优先国内可用的
+    const cdns = [
+      'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js',
+      'https://cdn.bootcdn.net/ajax/libs/twemoji/14.0.2/twemoji.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js'
+    ]
+    for (const url of cdns) {
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script')
+          s.src = url
+          s.onload = resolve
+          s.onerror = reject
+          document.head.appendChild(s)
+        })
+        if (window.twemoji) break
+      } catch {}
+    }
   }
   if (window.twemoji) {
     window.twemoji.parse(document.body, {
-      folder: 'svg',
-      ext: '.svg',
-      base: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'
+      folder: '72x72',
+      ext: '.png',
+      base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
     })
   }
 }
