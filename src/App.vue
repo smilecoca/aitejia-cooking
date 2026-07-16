@@ -81,6 +81,16 @@ watch(() => route.path, () => {
   nextTick(() => convertEmoji())
 })
 
+// 监听菜品列表变化（异步加载 / 搜索 / 分类切换后 Vue 重新渲染导致 emoji 丢失）
+watch(() => store.filteredDishes, () => {
+  nextTick(() => convertEmoji())
+}, { deep: true })
+
+// 监听订单数据变化
+watch(() => store.orderItems, () => {
+  nextTick(() => convertEmoji())
+}, { deep: true })
+
 // Emoji 兼容：将 Emoji 转为 PNG 图片（微信等老旧浏览器支持）
 // 使用本地安装的 twemoji 库 + 本地图片资源，不依赖外部 CDN
 function convertEmoji() {
