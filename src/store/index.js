@@ -5,7 +5,8 @@ import { api } from '@/api/client'
 
 export const useAppStore = defineStore('app', () => {
   // ===== 用户状态 =====
-  const saved = JSON.parse(localStorage.getItem('aitejia_user') || 'null')
+  const savedStr = uni.getStorageSync('aitejia_user')
+  const saved = savedStr ? JSON.parse(savedStr) : null
   const currentUser = ref(saved || {
     id: '', name: '', avatar: '👤', role: 'member', familyId: ''
   })
@@ -129,7 +130,7 @@ export const useAppStore = defineStore('app', () => {
     // 如果是当前用户，同步
     if (id === currentUser.value.id) {
       Object.assign(currentUser.value, updated)
-      localStorage.setItem('aitejia_user', JSON.stringify(currentUser.value))
+      uni.setStorageSync('aitejia_user', JSON.stringify(currentUser.value))
     }
   }
 

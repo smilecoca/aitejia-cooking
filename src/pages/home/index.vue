@@ -98,12 +98,17 @@ function pickMeal(type, label, icon) {
 }
 
 async function confirmOrder() {
-  const ok = window.confirm('确认后将锁定菜单，成员不能再修改。确认吗？')
-  if (!ok) return
+  const res = await new Promise(resolve => {
+    uni.showModal({
+      title: '确认点餐',
+      content: '确认后将锁定菜单，成员不能再修改。确认吗？',
+      success: resolve
+    })
+  })
+  if (!res.confirm) return
   try {
     await store.confirmOrder()
     showToast('点餐已确认 🔒')
-    // 刷新页面状态
     store.refreshOrder()
   } catch (e) {
     showToast(e.message || '确认失败')

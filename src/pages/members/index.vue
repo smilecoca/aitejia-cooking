@@ -59,10 +59,9 @@
         </div>
         <div class="field">
           <label>角色</label>
-          <select v-model="editForm.role">
-            <option value="admin">管理员</option>
-            <option value="member">成员</option>
-          </select>
+          <picker :range="roleOptions" :range-key="'label'" :value="roleIndex" @change="onRoleChange">
+            <view class="picker-value">{{ editForm.role === 'admin' ? '管理员' : '成员' }}</view>
+          </picker>
         </div>
         <div class="sheet-actions">
           <button class="cancel" @click="showEdit = false">取消</button>
@@ -74,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/store'
 import { showToast } from '@/utils/toast'
 
@@ -86,6 +85,12 @@ const editForm = ref({ name: '', avatar: '👤', role: 'member' })
 const addForm = ref({ name: '', password: '', avatar: '👤' })
 const addError = ref('')
 const avatars = ['👩', '👨', '👧', '🧒', '👴', '👵', '👦', '👶', '🧑', '👱']
+const roleOptions = [{ value: 'admin', label: '管理员' }, { value: 'member', label: '成员' }]
+const roleIndex = computed(() => editForm.value.role === 'admin' ? 0 : 1)
+
+function onRoleChange(e) {
+  editForm.value.role = roleOptions[e.detail.value].value
+}
 
 function openEdit(m) {
   editTarget.value = m.id
@@ -195,6 +200,12 @@ async function saveAdd() {
   font-size: 14px; color: var(--brown);
   background: var(--cream); outline: none;
   box-sizing: border-box;
+}
+.picker-value {
+  width: 100%; padding: 12px;
+  border: 1.5px solid #E0D6CC; border-radius: var(--radius-xs);
+  font-size: 14px; color: var(--brown);
+  background: var(--cream); box-sizing: border-box;
 }
 .av-picker { display: flex; flex-wrap: wrap; gap: 8px; }
 .av-opt {

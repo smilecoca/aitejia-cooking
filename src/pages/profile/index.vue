@@ -103,11 +103,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAppStore } from '@/store'
 import { showToast } from '@/utils/toast'
 
-const router = useRouter()
 const store = useAppStore()
 const showName = ref(false)
 const showAvatar = ref(false)
@@ -144,9 +142,9 @@ async function saveAvatar() {
 }
 
 function handleLogout() {
-  localStorage.removeItem('aitejia_token')
-  localStorage.removeItem('aitejia_user')
-  router.push('/login')
+  uni.removeStorageSync('aitejia_token')
+  uni.removeStorageSync('aitejia_user')
+  uni.reLaunch({ url: '/pages/login/index' })
 }
 
 async function savePassword() {

@@ -10,11 +10,11 @@
       <div class="login-form">
         <div class="field">
           <label>👤 用户名</label>
-          <input v-model="name" placeholder="请输入用户名" @keyup.enter="handleLogin" />
+          <input v-model="name" placeholder="请输入用户名" @confirm="handleLogin" />
         </div>
         <div class="field">
           <label>🔒 密码</label>
-          <input v-model="password" type="password" placeholder="请输入密码" @keyup.enter="handleLogin" />
+          <input v-model="password" type="password" placeholder="请输入密码" @confirm="handleLogin" />
         </div>
         <p v-if="error" class="error-msg">{{ error }}</p>
         <button class="login-btn" :disabled="loading" @click="handleLogin">
@@ -23,25 +23,30 @@
       </div>
 
       <!-- 用户列表（方便测试，仅开发环境显示） -->
+      <!-- #ifdef H5 -->
       <div class="user-hint" v-if="isDev">
         <p style="font-size:12px;color:var(--brown-lighter);">
           首次登录试用账号：妈妈 / 123456 （管理员）
         </p>
       </div>
+      <!-- #endif -->
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { api } from '@/api/client'
 import { useAppStore } from '@/store'
 
-const router = useRouter()
 const store = useAppStore()
 
+// #ifdef H5
 const isDev = import.meta.env.DEV
+// #endif
+// #ifndef H5
+const isDev = false
+// #endif
 
 const name = ref('')
 const password = ref('')
@@ -57,8 +62,8 @@ async function handleLogin() {
   error.value = ''
   try {
     const data = await api.login(name.value, password.value)
-    localStorage.setItem('aitejia_token', data.token)
-    localStorage.setItem('aitejia_user', JSON.stringify(data.user))
+    uni.setStorageSync('aitejia_token', data.token)
+    uni.setStorageSync('aitejia_user', JSON.stringify(data.user))
     store.currentUser.id = data.user.id
     store.currentUser.name = data.user.name
     store.currentUser.avatar = data.user.avatar
@@ -66,7 +71,7 @@ async function handleLogin() {
     store.currentUser.familyId = data.user.familyId
     // 加载初始数据
     await store.loadInitialData()
-    router.push('/home')
+    uni.switchTab({ url: '/pages/home/index' })
   } catch (e) {
     error.value = e.message || '登录失败'
   } finally {
@@ -77,7 +82,7 @@ async function handleLogin() {
 
 <style scoped>
 .login-page {
-  height: 100%;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,12 +97,6 @@ async function handleLogin() {
   width: 100%;
   max-width: 380px;
   box-shadow: 0 8px 40px rgba(93, 64, 55, 0.15);
-  animation: fadeSlideIn 0.4s ease;
-}
-
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-logo {
@@ -144,10 +143,6 @@ async function handleLogin() {
   background: var(--cream);
   outline: none;
   box-sizing: border-box;
-  transition: border 0.2s;
-}
-.field input:focus {
-  border-color: var(--orange);
 }
 
 .error-msg {
@@ -168,10 +163,7 @@ async function handleLogin() {
   background: linear-gradient(135deg, var(--orange), #FF9966);
   box-shadow: 0 4px 16px rgba(255, 123, 66, 0.35);
   cursor: pointer;
-  transition: all 0.2s;
 }
-.login-btn:active { transform: scale(0.98); }
-.login-btn:disabled { opacity: 0.6; }
 
 .user-hint {
   margin-top: 20px;

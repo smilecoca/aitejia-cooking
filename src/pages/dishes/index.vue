@@ -62,9 +62,9 @@
         </div>
         <div class="field">
           <label>分类</label>
-          <select v-model="form.category">
-            <option v-for="c in categories.filter(x => x.key !== 'all')" :key="c.key" :value="c.key">{{ c.name }}</option>
-          </select>
+          <picker :range="categoryOptions" :range-key="'label'" :value="categoryIndex" @change="onCategoryChange">
+            <view class="picker-value">{{ getCategoryLabel(form.category) }}</view>
+          </picker>
         </div>
         <div class="field">
           <label>图标（点击选择）</label>
@@ -98,6 +98,16 @@ const showForm = ref(false)
 const showEmojiPicker = ref(false)
 const editing = ref(null)
 const form = ref({ name: '', category: 'meat', emoji: '🍖' })
+
+const categoryOptions = categories.filter(x => x.key !== 'all').map(c => ({ value: c.key, label: c.name }))
+const categoryIndex = computed(() => categoryOptions.findIndex(c => c.value === form.value.category))
+
+function getCategoryLabel(key) {
+  return catNames[key] || key
+}
+function onCategoryChange(e) {
+  form.value.category = categoryOptions[e.detail.value].value
+}
 
 const selectedNames = computed(() =>
   store.mySelections.map(id => store.dishList.find(d => d.id === id)?.name || '').filter(Boolean).join(' · ')
@@ -267,6 +277,12 @@ async function saveDish() {
   font-size: 14px; color: var(--brown);
   background: var(--cream); outline: none;
   box-sizing: border-box;
+}
+.picker-value {
+  width: 100%; padding: 12px;
+  border: 1.5px solid #E0D6CC; border-radius: var(--radius-xs);
+  font-size: 14px; color: var(--brown);
+  background: var(--cream); box-sizing: border-box;
 }
 .sheet-actions { display: flex; gap: 12px; margin-top: 20px; }
 .sheet-actions button {

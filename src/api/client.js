@@ -1,44 +1,63 @@
-// API 客户端
+// API 客户端 - UniApp 版本
+// #ifdef H5
 const BASE = '/api'
+// #endif
+// #ifdef MP-WEIXIN
+const BASE = 'https://aitejia-cooking.onrender.com/api'
+// #endif
 
 function getToken() {
-  return localStorage.getItem('aitejia_token') || ''
+  return uni.getStorageSync('aitejia_token') || ''
 }
 
-async function request(path, options = {}) {
-  const token = getToken()
-  const headers = { ...options.headers }
-  if (token) headers['Authorization'] = 'Bearer ' + token
-  if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json'
-  }
+function request(path, options = {}) {
+  return new Promise((resolve, reject) => {
+    const token = getToken()
+    const header = {
+      'Content-Type': 'application/json'
+    }
+    if (token) header['Authorization'] = 'Bearer ' + token
+    if (options.headers) Object.assign(header, options.headers)
 
-  const res = await fetch(BASE + path, {
-    ...options,
-    headers
-  })
+    const method = (options.method || 'GET').toUpperCase()
+    let data = null
+    if (options.body) {
+      try {
+        data = JSON.parse(options.body)
+      } catch {
+        data = options.body
+      }
+    }
 
-  if (res.status === 401 && !path.includes('/auth/login')) {
-    // token 过期，跳转登录（排除登录接口自身的 401）
-    localStorage.removeItem('aitejia_token')
-    localStorage.removeItem('aitejia_user')
-    import('@/router').then(mod => {
-      mod.default.push('/login')
-    }).catch(() => {
-      window.location.hash = '#/login'
+    uni.request({
+      url: BASE + path,
+      method,
+      header,
+      data,
+      success(res) {
+        const statusCode = res.statusCode
+        if (statusCode === 401 && !path.includes('/auth/login')) {
+          // token 过期，跳转登录（排除登录接口自身的 401）
+          uni.removeStorageSync('aitejia_token')
+          uni.removeStorageSync('aitejia_user')
+          uni.reLaunch({ url: '/pages/login/index' })
+          reject(new Error('登录已过期'))
+          return
+        }
+
+        const resData = res.data
+        if (statusCode < 200 || statusCode >= 300) {
+          const errMsg = (resData && resData.error) || `服务器错误 (${statusCode})`
+          reject(new Error(errMsg))
+          return
+        }
+        resolve(resData)
+      },
+      fail(err) {
+        reject(new Error(err.errMsg || '网络请求失败'))
+      }
     })
-    throw new Error('登录已过期')
-  }
-
-  let data
-  try {
-    data = await res.json()
-  } catch {
-    if (!res.ok) throw new Error(`服务器错误 (${res.status})`)
-    throw new Error('响应格式异常')
-  }
-  if (!res.ok) throw new Error(data.error || '请求失败')
-  return data
+  })
 }
 
 export const api = {

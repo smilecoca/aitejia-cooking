@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import uniPlugin from '@dcloudio/vite-plugin-uni'
 import { fileURLToPath } from 'url'
 
+const uni = uniPlugin.default || uniPlugin
+
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [uni()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
