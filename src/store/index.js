@@ -41,20 +41,16 @@ export const useAppStore = defineStore('app', () => {
 
   // ===== 初始化数据加载 =====
   async function loadInitialData() {
-    try {
-      const [dishes, members, order, items] = await Promise.all([
-        api.getDishes(),
-        api.getMembers(),
-        api.getCurrentOrder(),
-        api.getOrderItems()
-      ])
-      dishList.value = dishes
-      familyMembers.value = members
-      currentOrder.value = order
-      orderItems.value = items
-    } catch (e) {
-      console.error('加载数据失败:', e)
-    }
+    const [dishes, members, order, items] = await Promise.all([
+      api.getDishes(),
+      api.getMembers(),
+      api.getCurrentOrder(),
+      api.getOrderItems()
+    ])
+    dishList.value = dishes
+    familyMembers.value = members
+    currentOrder.value = order
+    orderItems.value = items
   }
 
   // ===== 分类/搜索 =====
@@ -127,12 +123,12 @@ export const useAppStore = defineStore('app', () => {
 
   // ===== 成员管理（管理员） =====
   async function updateMember(id, data) {
-    await api.updateMember(id, data)
+    const updated = await api.updateMember(id, data)
     const idx = familyMembers.value.findIndex(m => m.id === id)
-    if (idx > -1) Object.assign(familyMembers.value[idx], data)
+    if (idx > -1) Object.assign(familyMembers.value[idx], updated)
     // 如果是当前用户，同步
     if (id === currentUser.value.id) {
-      Object.assign(currentUser.value, data)
+      Object.assign(currentUser.value, updated)
       localStorage.setItem('aitejia_user', JSON.stringify(currentUser.value))
     }
   }

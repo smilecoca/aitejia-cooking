@@ -111,7 +111,7 @@ async function saveAdd() {
     await store.addMember({
       name: addForm.value.name.trim(),
       avatar: addForm.value.avatar,
-      password: addForm.value.password || '123456'
+      password: addForm.value.password || undefined
     })
     showToast('已添加 ✅')
     showAdd.value = false

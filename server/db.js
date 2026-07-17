@@ -70,4 +70,13 @@ function write(name, data) {
   fs.writeFileSync(getFilePath(name), JSON.stringify(data, null, 2), 'utf-8')
 }
 
-module.exports = { read, write, hashPassword, comparePassword: bcrypt.compareSync }
+// 简单的内存锁，确保同一资源的读写操作串行化
+const locks = {}
+async function withLock(name, fn) {
+  const prev = locks[name] || Promise.resolve()
+  const next = prev.then(fn, fn)
+  locks[name] = next.catch(() => {})
+  return next
+}
+
+module.exports = { read, write, hashPassword, comparePassword: bcrypt.compareSync, withLock }

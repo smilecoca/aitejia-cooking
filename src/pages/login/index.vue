@@ -22,8 +22,8 @@
         </button>
       </div>
 
-      <!-- 用户列表（方便测试） -->
-      <div class="user-hint">
+      <!-- 用户列表（方便测试，仅开发环境显示） -->
+      <div class="user-hint" v-if="isDev">
         <p style="font-size:12px;color:var(--brown-lighter);">
           首次登录试用账号：妈妈 / 123456 （管理员）
         </p>
@@ -40,6 +40,8 @@ import { useAppStore } from '@/store'
 
 const router = useRouter()
 const store = useAppStore()
+
+const isDev = import.meta.env.DEV
 
 const name = ref('')
 const password = ref('')

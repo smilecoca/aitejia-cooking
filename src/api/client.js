@@ -18,11 +18,10 @@ async function request(path, options = {}) {
     headers
   })
 
-  if (res.status === 401) {
-    // token 过期，跳转登录
+  if (res.status === 401 && !path.includes('/auth/login')) {
+    // token 过期，跳转登录（排除登录接口自身的 401）
     localStorage.removeItem('aitejia_token')
     localStorage.removeItem('aitejia_user')
-    // 使用 Vue Router 跳转
     import('@/router').then(mod => {
       mod.default.push('/login')
     }).catch(() => {
@@ -31,7 +30,13 @@ async function request(path, options = {}) {
     throw new Error('登录已过期')
   }
 
-  const data = await res.json()
+  let data
+  try {
+    data = await res.json()
+  } catch {
+    if (!res.ok) throw new Error(`服务器错误 (${res.status})`)
+    throw new Error('响应格式异常')
+  }
   if (!res.ok) throw new Error(data.error || '请求失败')
   return data
 }

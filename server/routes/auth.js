@@ -1,6 +1,6 @@
 const express = require('express')
 const jwt = require('jsonwebtoken')
-const { read, write, hashPassword, comparePassword } = require('../db')
+const { read, write, hashPassword, comparePassword, withLock } = require('../db')
 const { authMiddleware, JWT_SECRET } = require('../middleware/auth')
 
 const router = express.Router()
@@ -56,7 +56,7 @@ router.get('/me', authMiddleware, (req, res) => {
 })
 
 // 修改密码
-router.put('/password', authMiddleware, (req, res) => {
+router.put('/password', authMiddleware, async (req, res) => {
   const { oldPassword, newPassword } = req.body || {}
   if (!oldPassword || !newPassword) {
     return res.status(400).json({ error: '请填写旧密码和新密码' })
@@ -65,17 +65,19 @@ router.put('/password', authMiddleware, (req, res) => {
     return res.status(400).json({ error: '新密码至少4位' })
   }
 
-  const users = read('users')
-  const idx = users.findIndex(u => u.id === req.user.id)
-  if (idx === -1) return res.status(404).json({ error: '用户不存在' })
+  await withLock('users', () => {
+    const users = read('users')
+    const idx = users.findIndex(u => u.id === req.user.id)
+    if (idx === -1) return res.status(404).json({ error: '用户不存在' })
 
-  if (!comparePassword(oldPassword, users[idx].password)) {
-    return res.status(400).json({ error: '旧密码不正确' })
-  }
+    if (!comparePassword(oldPassword, users[idx].password)) {
+      return res.status(400).json({ error: '旧密码不正确' })
+    }
 
-  users[idx].password = hashPassword(newPassword)
-  write('users', users)
-  res.json({ success: true, message: '密码已修改' })
+    users[idx].password = hashPassword(newPassword)
+    write('users', users)
+    res.json({ success: true, message: '密码已修改' })
+  })
 })
 
 module.exports = router
