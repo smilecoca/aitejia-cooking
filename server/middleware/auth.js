@@ -1,14 +1,13 @@
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 
-// 生产环境必须设置 JWT_SECRET 环境变量，否则拒绝启动
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('❌ 生产环境必须设置 JWT_SECRET 环境变量')
-  }
-  console.warn('⚠️  未设置 JWT_SECRET，使用开发默认密钥（仅限开发环境）')
+// 优先使用环境变量，否则自动生成随机密钥（重启后旧 token 会失效）
+let _JWT_SECRET = process.env.JWT_SECRET
+if (!_JWT_SECRET) {
+  _JWT_SECRET = crypto.randomBytes(32).toString('hex')
+  console.warn('⚠️  未设置 JWT_SECRET，已自动生成随机密钥（重启后用户需重新登录）')
+  console.warn('💡 建议：在部署平台设置 JWT_SECRET 环境变量以保持 token 持久有效')
 }
-const _JWT_SECRET = JWT_SECRET || 'dev-only-aitejia-cooking-secret-2026'
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization
